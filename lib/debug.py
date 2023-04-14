@@ -14,9 +14,31 @@ if __name__ == '__main__':
     all_devs = CURSOR.execute("SELECT * FROM devs").fetchall()
     all_free = CURSOR.execute("SELECT * FROM freebies").fetchall()
     
-    all_comp_as_insts = [ Company.new_inst_from_db(row) for row in all_comp]
-    all_devs_as_insts = [ Dev.new_inst_from_db(row) for row in all_devs]
-    all_free_as_insts = [ Freebie.new_inst_from_db(row) for row in all_free]
+    all_comp_as_insts = Company.map_db_to_instances()
+    # ! Python destructuring
+    billworld, wallyworld = all_comp_as_insts
+    # billworld = all_comp_as_insts[0]
 
+    billworld.freebies()
+
+    all_devs_as_insts = Dev.map_db_to_instances()
+    cole, oli = all_devs_as_insts
     
+    cole.freebies()
+
+    all_freebies_as_insts = Freebie.map_db_to_instances()
+    one = all_freebies_as_insts[0]
+
+    # ! CHAIN REACTION INSTANCES
+    # dev_inst = one.dev()
+    # list_o_freebies = dev_inst.freebies()
+    # comp = list_o_freebies[0].company()
+
+    # TEST AGGREGATE METHODS
+
+    one.print_details()
+
+    # Company.oldest_company()
+    billworld.give_freebie(cole, "Mug Warmer", 99)
+
     set_trace()

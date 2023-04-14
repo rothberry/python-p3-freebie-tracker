@@ -1,5 +1,7 @@
 import sqlite3
 from ipdb import set_trace
+from classes.freebie import Freebie
+# from dev import Dev
 
 CONN = sqlite3.connect('./freebies.db')
 CURSOR = CONN.cursor()
@@ -69,6 +71,11 @@ class Company():
     def new_inst_from_db(cls, row):
       return cls(name=row[1], founding_year=row[2], id=row[0])
       
+    @classmethod
+    def map_db_to_instances(cls):
+        all_comp = CURSOR.execute("SELECT * FROM companies").fetchall()
+        return [ cls.new_inst_from_db(row) for row in all_comp]
+
     
     # Print_details_for_a_human_to_read(self)
     def __repr__(self):
@@ -87,18 +94,33 @@ class Company():
     # ? Relationship Methods
     def freebies(self):
         # Returns all the FREEBIE Instances associated with THIS Company
-        pass
+        sql = """
+            SELECT * FROM freebies
+            WHERE company_id = ?
+        """
+        freebie_rows = CURSOR.execute(sql, (self.id,)).fetchall()
+        # * ACCEPTABLE RETURN OF THE LIST OF FREEBIE TUPLES
+        # return freebie_rows
+        # OR
+        return  [ Freebie.new_inst_from_db(row) for row in freebie_rows ]
 
     def devs(self):
         # Returns all the DEV Instances associated with THIS Company
         pass
 
     # ? Aggregate Methods
-    def give_freebie(self, dev, item_name, value):
-        pass
+    def give_freebie(self, dev_inst, item_name, value):
+        # dev_inst is an INSTANCE of Dev, not the tuple
+        return Freebie.create(item_name, value, dev_inst.id, self.id)
 
     @classmethod
     def oldest_company(cls):
         # Returns the COMPANY Instance of the oldest company
         # ! Should not use any python searching, it will all be done in SQL
-        pass
+        sql = """
+            SELECT * FROM companies 
+            ORDER by founding_year LIMIT 1
+        """
+        old = CURSOR.execute(sql).fetchone()
+        return cls.new_inst_from_db(old)
+        # return Company.new_inst_from_db(old)

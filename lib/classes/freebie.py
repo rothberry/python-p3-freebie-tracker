@@ -1,3 +1,5 @@
+# from classes.company import Company
+# from classes.dev import Dev
 import sqlite3
 from ipdb import set_trace
 
@@ -77,6 +79,7 @@ class Freebie():
     @classmethod
     def drop_table(cls):
         CURSOR.execute("DROP TABLE IF EXISTS freebies")
+        CONN.commit()
 
     def save(self):
         sql = """
@@ -95,16 +98,23 @@ class Freebie():
     
     @classmethod
     def new_inst_from_db(cls, row):
-      return cls(item_name=row[1], value=row[2], dev_id=row[3], company_id=row[4], id=row[0])
+        #   Freeboe.__init__
+        free_inst = cls(item_name=row[1], value=row[2], dev_id=row[3], company_id=row[4])
+        free_inst.id = row[4]
+    #   return cls(item_name=row[1], value=row[2], dev_id=row[3], company_id=row[4], id=row[0])
     
+    @classmethod
+    def map_db_to_instances(cls):
+        all_free = CURSOR.execute("SELECT * FROM freebies").fetchall()
+        return [ cls.new_inst_from_db(row) for row in all_free]
+
     def __repr__(self):
         return f"""
             id:\t{self.id}
             item_name:\t{self.item_name}
             value:\t{self.value}
             dev_id:\t{self.dev_id}
-            company_id:\t{self.company_id}
-        """
+            company_id:\t{self.company_id}"""
 
     # ? Optional Useful Methods
     def update(self):
@@ -115,12 +125,28 @@ class Freebie():
 
     # ? Relationship Methods
     def company(self):
-        pass
+        sql = """
+            SELECT * FROM companies
+            WHERE id = ?
+        """
+        company = CURSOR.execute(sql, (self.company_id,)).fetchone()
+        from classes.company import Company
+        # * ACCEPTABLE
+        # return company
+        return Company.new_inst_from_db(company)
 
     def dev(self):
-        pass
+        sql = """
+            SELECT * FROM devs
+            WHERE id = ?
+        """
+        dev = CURSOR.execute(sql, (self.dev_id,)).fetchone()
+        from classes.dev import Dev
+        # * ACCEPTABLE
+        # return dev
+        return Dev.new_inst_from_db(dev)
 
     def print_details(self):
         # Returns a String formatted like:
         #   {dev name} owns a {freebie item_name} from {company name}
-        pass
+        print(f"{self.dev().name} owns a {self.item_name} from {self.company().name}")

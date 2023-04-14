@@ -1,3 +1,4 @@
+from classes.freebie import Freebie
 import sqlite3
 from ipdb import set_trace
 
@@ -55,6 +56,11 @@ class Dev():
     def new_inst_from_db(cls, row):
       return cls(name=row[1], id=row[0])
     
+    @classmethod
+    def map_db_to_instances(cls):
+        all_devs = CURSOR.execute("SELECT * FROM devs").fetchall()
+        return [ cls.new_inst_from_db(row) for row in all_devs]
+
     def __repr__(self):
         return f"""
             id:\t\t{self.id}
@@ -72,15 +78,32 @@ class Dev():
         pass
 
     def freebies(self):
-        pass
+        sql = """
+            SELECT * FROM freebies
+            WHERE dev_id = ?
+        """
+        freebie_rows = CURSOR.execute(sql, (self.id,)).fetchall()
+        # * ACCEPTABLE
+        # return freebie_rows
+        return [ Freebie.new_inst_from_db(row) for row in freebie_rows ]
 
     # ? Aggregate Methods
     def recieved_one(self, item_name):
         # Returns a BOOLEAN of whether or not THIS Dev has recieved
-        pass
+        # Need to map over the freebies associated to get a list of names,
+        # then check if item_name is in the list
+        return item_name in [ free.item_name for free in self.freebies()]
+            
 
     def give_away(self, other_dev, freebie):
         # Gives this Freebie instance to other_dev
-        #
-        pass
+        # reassigning the dev_id on this freebie to the other_dev.id
+        sql = """
+            UPDATE freebies
+            SET dev_id = ?
+            WHERE id = ?
+        """
+        updated_freebie = CURSOR.execute(sql, (other_dev.id, freebie.id))
+        CONN.commit()
+        return updated_freebie
 

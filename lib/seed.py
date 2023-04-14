@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from models import Company, Dev, Freebie
+# from models import Company, Dev, Freebie
+from classes.company import Company
+from classes.dev import Dev
+from classes.freebie import Freebie
 from ipdb import set_trace
 
 # # ASSUMPTION, DB RESETS TO id=1 autoincrement
